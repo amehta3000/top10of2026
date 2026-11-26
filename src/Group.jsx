@@ -72,14 +72,19 @@ export default function Group({ onPick }) {
           <ol className="tally">
             {shared.map((t) => (
               <li key={t.id}>
-                {t.thumb ? <img src={t.thumb} alt="" /> : <span className="ph" />}
-                <span className="r-text">
-                  <strong>{t.title}</strong>
-                  <small>{t.artist}</small>
-                </span>
+                {playing === `t:${t.id}` ? (
+                  <PreviewPlayer id={t.id} className="span-2" />
+                ) : (
+                  <>
+                    {t.thumb ? <img src={t.thumb} alt="" /> : <span className="ph" />}
+                    <span className="r-text">
+                      <strong>{t.title}</strong>
+                      <small>{t.artist}</small>
+                    </span>
+                  </>
+                )}
                 <span className="votes" title={t.by.join(', ')}>×{t.count}</span>
                 <PlayButton active={playing === `t:${t.id}`} onClick={() => toggle(`t:${t.id}`)} />
-                {playing === `t:${t.id}` && <PreviewPlayer id={t.id} />}
               </li>
             ))}
           </ol>
@@ -94,10 +99,15 @@ export default function Group({ onPick }) {
               {s.tracks.map((t, i) => (
                 <li key={t.id}>
                   <span className="n">{String(i + 1).padStart(2, '0')}</span>
-                  <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a>
+                  {playing === `${k}:${t.id}` ? (
+                    <PreviewPlayer id={t.id} className="row-2" />
+                  ) : (
+                    <>
+                      <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a>
+                      <small>{t.artist}</small>
+                    </>
+                  )}
                   <PlayButton active={playing === `${k}:${t.id}`} onClick={() => toggle(`${k}:${t.id}`)} />
-                  <small>{t.artist}</small>
-                  {playing === `${k}:${t.id}` && <PreviewPlayer id={t.id} />}
                 </li>
               ))}
             </ol>

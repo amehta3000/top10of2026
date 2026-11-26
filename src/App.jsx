@@ -397,12 +397,15 @@ function StoryScreen({ story, assets, kind, group, nav }) {
           {story.tracks.map((t, i) => (
             <li key={i}>
               <span className="n">{String(i + 1).padStart(2, '0')}</span>
-              <span className="t">
-                {t.id ? <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a> : t.title}
-                <small>{t.artist}</small>
-              </span>
+              {playing === t.id ? (
+                <PreviewPlayer id={t.id} />
+              ) : (
+                <span className="t">
+                  {t.id ? <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a> : t.title}
+                  <small>{t.artist}</small>
+                </span>
+              )}
               {t.id && <PlayButton active={playing === t.id} onClick={() => setPlaying((p) => (p === t.id ? null : t.id))} />}
-              {playing === t.id && <PreviewPlayer id={t.id} />}
             </li>
           ))}
         </ol>

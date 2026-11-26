@@ -123,18 +123,21 @@ export default function Picker({ initial, onDone, notice }) {
             const taken = pickedIds.has(t.id);
             return (
               <li key={t.id} className="result">
-                <button className="result-main" onClick={() => add(t)} disabled={taken || picks.length >= MAX}>
-                  {t.thumb ? <img src={t.thumb} alt="" /> : <span className="ph" />}
-                  <span className="r-text">
-                    <strong>{t.title}</strong>
-                    <small>{t.artist} · {t.releaseDate}</small>
-                  </span>
-                </button>
+                {playing === `r:${t.id}` ? (
+                  <PreviewPlayer id={t.id} />
+                ) : (
+                  <button className="result-main" onClick={() => add(t)} disabled={taken || picks.length >= MAX}>
+                    {t.thumb ? <img src={t.thumb} alt="" /> : <span className="ph" />}
+                    <span className="r-text">
+                      <strong>{t.title}</strong>
+                      <small>{t.artist} · {t.releaseDate}</small>
+                    </span>
+                  </button>
+                )}
                 <PlayButton active={playing === `r:${t.id}`} onClick={() => toggle(`r:${t.id}`)} />
                 <button className="r-add" onClick={() => add(t)} disabled={taken || picks.length >= MAX} aria-label={taken ? 'Added' : 'Add'}>
                   {taken ? '✓' : '+'}
                 </button>
-                {playing === `r:${t.id}` && <PreviewPlayer id={t.id} />}
               </li>
             );
           })}
@@ -164,18 +167,23 @@ export default function Picker({ initial, onDone, notice }) {
                 className="pick"
               >
                 <span className="n">{String(i + 1).padStart(2, '0')}</span>
-                {t.thumb || t.imageUrl ? <img src={t.thumb || t.imageUrl} alt="" /> : <span className="ph" />}
-                <span className="r-text">
-                  <strong>{t.title}</strong>
-                  <small>{t.artist}</small>
-                </span>
+                {playing === `p:${t.id}` ? (
+                  <PreviewPlayer id={t.id} className="span-2" />
+                ) : (
+                  <>
+                    {t.thumb || t.imageUrl ? <img src={t.thumb || t.imageUrl} alt="" /> : <span className="ph" />}
+                    <span className="r-text">
+                      <strong>{t.title}</strong>
+                      <small>{t.artist}</small>
+                    </span>
+                  </>
+                )}
                 <span className="pick-ctrl">
                   {t.id && <PlayButton active={playing === `p:${t.id}`} onClick={() => toggle(`p:${t.id}`)} />}
                   <button onClick={() => move(i, i - 1)} disabled={i === 0} aria-label="Move up">↑</button>
                   <button onClick={() => move(i, i + 1)} disabled={i === picks.length - 1} aria-label="Move down">↓</button>
                   <button onClick={() => remove(i)} aria-label="Remove">×</button>
                 </span>
-                {playing === `p:${t.id}` && <PreviewPlayer id={t.id} />}
               </li>
             );
           })}
