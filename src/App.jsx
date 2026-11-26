@@ -5,7 +5,7 @@ import Group from './Group.jsx';
 import Admin from './Admin.jsx';
 import { loadAssets, fontsReady } from './art.js';
 import { DEMO_STORY } from './demo.js';
-import { YEAR, rankYear, releasedIn } from './rank.js';
+import { YEAR, rankYear, rankLiked, releasedIn } from './rank.js';
 import { decodeStory, shareUrl } from './share.js';
 import { recordCanvas, stillImage, deliverFile } from './export.js';
 import { getGroup, submitPicks, playlistUrl } from './api.js';
@@ -59,8 +59,9 @@ export default function App() {
     let next;
     try {
       const profile = await spotify.getProfile();
+      const source = spotify.autofillSource();
       const seen = new Set();
-      const byRange = await spotify.getTopTracks((_, items) => {
+      const onBatch = (items) => {
         setScan((prev) => {
           let { count, hits } = prev;
           const feed = [...prev.feed];
@@ -74,13 +75,25 @@ export default function App() {
           }
           return { count, hits, feed: feed.slice(-14) };
         });
-      });
-      const { tracks, stats } = rankYear(byRange);
-      await new Promise((r) => setTimeout(r, Math.max(0, 3000 - (Date.now() - t0))));
-      next = {
-        data: { name: profile.name, tracks, mode: tracks.length ? 'played' : 'picked', stats: tracks.length ? stats : null },
-        notice: tracks.length ? null : `None of your top tracks came out in ${YEAR} yet. Pick by hand instead.`,
       };
+      if (source === 'liked') {
+        const liked = await spotify.getLikedTracks(YEAR, onBatch);
+        const byRange = await spotify.getTopTracks(); // only to rank liked songs by plays
+        const { tracks } = rankLiked(liked, byRange);
+        await new Promise((r) => setTimeout(r, Math.max(0, 3000 - (Date.now() - t0))));
+        next = {
+          data: { name: profile.name, tracks, mode: 'picked', stats: null, source: 'liked' },
+          notice: tracks.length ? null : `None of your Liked Songs came out in ${YEAR}. Pick by hand instead.`,
+        };
+      } else {
+        const byRange = await spotify.getTopTracks((_, items) => onBatch(items));
+        const { tracks, stats } = rankYear(byRange);
+        await new Promise((r) => setTimeout(r, Math.max(0, 3000 - (Date.now() - t0))));
+        next = {
+          data: { name: profile.name, tracks, mode: tracks.length ? 'played' : 'picked', stats: tracks.length ? stats : null, source: 'all' },
+          notice: tracks.length ? null : `None of your top tracks came out in ${YEAR} yet. Pick by hand instead.`,
+        };
+      }
     } catch (e) {
       const notice =
         e.kind === 'not_allowlisted'
@@ -201,7 +214,7 @@ function Landing({ nav, group }) {
         </div>
         <div className="sub-links">
           {spotify.isConfigured() && (
-            <button className="link-btn" onClick={() => spotify.login('autofill')}>Autofill from Spotify instead</button>
+            <button className="link-btn" onClick={() => nav('#pick')}>Or autofill from Spotify</button>
           )}
           {group.enabled && <button className="link-btn" onClick={() => nav('#group')}>See the group playlist →</button>}
         </div>

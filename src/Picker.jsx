@@ -101,9 +101,11 @@ export default function Picker({ initial, onDone, notice }) {
         {notice && <p className="note warn">{notice}</p>}
 
         {spotify.isConfigured() && mode !== 'played' && picks.length === 0 && (
-          <button className="link-btn" onClick={() => spotify.login('autofill')}>
-            Or autofill from your Spotify listening →
-          </button>
+          <div className="autofill">
+            <span>Or autofill from Spotify:</span>
+            <button className="chip" onClick={() => spotify.login('autofill', 'liked')}>My Liked Songs</button>
+            <button className="chip" onClick={() => spotify.login('autofill', 'all')}>Everything I play</button>
+          </div>
         )}
 
         <div className="search-box">
@@ -151,6 +153,7 @@ export default function Picker({ initial, onDone, notice }) {
           <span className="count">{picks.length}/{MAX}</span>
         </div>
         {mode === 'played' && <p className="note ok">Autofilled from your listening. Edit it freely.</p>}
+        {initial?.source === 'liked' && picks.length > 0 && <p className="note ok">Autofilled from your Liked Songs, most-played first. Edit it freely.</p>}
 
         <ol className="picks">
           {Array.from({ length: MAX }).map((_, i) => {

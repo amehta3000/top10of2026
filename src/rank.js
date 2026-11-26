@@ -52,6 +52,34 @@ export function rankYear(byRange, year = YEAR, limit = 10) {
 /** Same song released as a single and on an album has different IDs; this key matches them. */
 export const songKey = (title, artist) => `${normalize(title || '')}|${String(artist || '').toLowerCase().split(',')[0].trim()}`;
 
+/**
+ * Liked Songs have no play counts: rank 2026 releases you've liked by how much
+ * you play them (top-tracks affinity), then by how recently you liked them.
+ */
+export function rankLiked(liked, byRange, year = YEAR, limit = 10) {
+  const plays = new Map();
+  for (const [range, items] of Object.entries(byRange)) {
+    const w = WEIGHTS[range] ?? 1;
+    const n = Math.max(items.length, 1);
+    items.forEach((t, i) => {
+      if (!t) return;
+      const k = songKey(t.name, t.artists?.[0]?.name);
+      plays.set(k, (plays.get(k) || 0) + w * (1 - i / (n + 1)) * 100);
+    });
+  }
+  const seen = new Map();
+  liked.forEach((t, recency) => {
+    if (!t || !releasedIn(t, year)) return;
+    const k = songKey(t.name, t.artists?.[0]?.name);
+    const prev = seen.get(k);
+    if (!prev) seen.set(k, { track: t, score: plays.get(k) || 0, recency });
+    // same song liked twice (single + album): keep the earlier release, earliest like position
+    else if (String(t.album?.release_date) < String(prev.track.album?.release_date)) seen.set(k, { ...prev, track: t });
+  });
+  const ranked = [...seen.values()].sort((a, b) => b.score - a.score || a.recency - b.recency);
+  return { tracks: ranked.slice(0, limit).map(({ track }) => toCardTrack(track)), likedCount: seen.size };
+}
+
 export function toCardTrack(t) {
   const imgs = [...(t.album?.images || [])].sort((a, b) => (b.width || 0) - (a.width || 0));
   const thumb = [...imgs].reverse().find((i) => (i.width || 0) >= 64) || imgs[imgs.length - 1];

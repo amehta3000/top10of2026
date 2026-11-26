@@ -7,7 +7,7 @@ const TOKEN_KEY = 'top10.token';
 
 // What the person was doing when they logged in decides the scopes we ask for.
 const SCOPES = {
-  autofill: 'user-top-read playlist-modify-private',
+  autofill: 'user-top-read user-library-read playlist-modify-private',
   admin: 'user-top-read playlist-modify-public playlist-modify-private',
 };
 
@@ -37,7 +37,8 @@ async function sha256(str) {
   return b64url(new Uint8Array(buf));
 }
 
-export async function login(intent = 'autofill') {
+export async function login(intent = 'autofill', source) {
+  if (source) sessionStorage.setItem('top10.source', source); // 'liked' | 'all'
   const verifier = randomString(64);
   const state = randomString(16);
   sessionStorage.setItem('top10.verifier', verifier);
@@ -192,7 +193,32 @@ export async function addToPlaylist(playlistId, trackIds) {
   }
 }
 
-export const RANGES =['long_term', 'medium_term', 'short_term'];
+export const autofillSource = () => sessionStorage.getItem('top10.source') || 'all';
+
+/**
+ * Liked Songs released in YEAR. Liked Songs come newest-first, and a 2026
+ * release can't have been liked before 2026, so stop at the first older like.
+ */
+export async function getLikedTracks(year, onBatch) {
+  const out = [];
+  const cutoff = `${year}-01-01`;
+  let next = '/me/tracks?limit=50';
+  let pages = 0;
+  while (next && pages < 40) {
+    const page = await api(next);
+    const items = page.items || [];
+    const tracks = items.map((it) => it.track || it.item).filter(Boolean);
+    onBatch?.(tracks);
+    out.push(...tracks);
+    pages++;
+    const last = items[items.length - 1];
+    if (!last || String(last.added_at) < cutoff) break;
+    next = page.next;
+  }
+  return out;
+}
+
+export const RANGES = ['long_term', 'medium_term', 'short_term'];
 
 /**
  * Pulls the user's top tracks for each time range (up to ~100 per range).
