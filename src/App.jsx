@@ -10,6 +10,7 @@ import { decodeStory, shareUrl } from './share.js';
 import { recordCanvas, stillImage, deliverFile } from './export.js';
 import { getGroup, submitPicks, playlistUrl } from './api.js';
 import * as spotify from './spotify.js';
+import { PlayButton, PreviewPlayer } from './Preview.jsx';
 
 const host = () => window.location.host;
 let booted = false;
@@ -246,6 +247,7 @@ function StoryScreen({ story, assets, kind, group, nav }) {
   const [submitted, setSubmitted] = useState(false);
   const [saved, setSaved] = useState(null);
   const [working, setWorking] = useState('');
+  const [playing, setPlaying] = useState(null);
   const own = kind === 'own';
   const allIds = useMemo(() => story.tracks.every((t) => t.id), [story]);
   const flash = (m) => {
@@ -399,6 +401,8 @@ function StoryScreen({ story, assets, kind, group, nav }) {
                 {t.id ? <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a> : t.title}
                 <small>{t.artist}</small>
               </span>
+              {t.id && <PlayButton active={playing === t.id} onClick={() => setPlaying((p) => (p === t.id ? null : t.id))} />}
+              {playing === t.id && <PreviewPlayer id={t.id} />}
             </li>
           ))}
         </ol>

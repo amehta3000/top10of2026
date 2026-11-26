@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getGroup, playlistUrl } from './api.js';
+import { PlayButton, PreviewPlayer } from './Preview.jsx';
 import { YEAR, songKey } from './rank.js';
 
 // Earlier editions, linked from the group page.
@@ -23,6 +24,8 @@ export function tally(submissions) {
 
 export default function Group({ onPick }) {
   const [g, setG] = useState(null);
+  const [playing, setPlaying] = useState(null);
+  const toggle = (key) => setPlaying((cur) => (cur === key ? null : key));
   useEffect(() => {
     getGroup().then(setG);
   }, []);
@@ -75,6 +78,8 @@ export default function Group({ onPick }) {
                   <small>{t.artist}</small>
                 </span>
                 <span className="votes" title={t.by.join(', ')}>×{t.count}</span>
+                <PlayButton active={playing === `t:${t.id}`} onClick={() => toggle(`t:${t.id}`)} />
+                {playing === `t:${t.id}` && <PreviewPlayer id={t.id} />}
               </li>
             ))}
           </ol>
@@ -90,7 +95,9 @@ export default function Group({ onPick }) {
                 <li key={t.id}>
                   <span className="n">{String(i + 1).padStart(2, '0')}</span>
                   <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a>
+                  <PlayButton active={playing === `${k}:${t.id}`} onClick={() => toggle(`${k}:${t.id}`)} />
                   <small>{t.artist}</small>
+                  {playing === `${k}:${t.id}` && <PreviewPlayer id={t.id} />}
                 </li>
               ))}
             </ol>
