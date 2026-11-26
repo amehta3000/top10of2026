@@ -25,7 +25,6 @@ export function tally(submissions) {
 export default function Group({ onPick }) {
   const [g, setG] = useState(null);
   const [playing, setPlaying] = useState(null);
-  const toggle = (key) => setPlaying((cur) => (cur === key ? null : key));
   useEffect(() => {
     getGroup().then(setG);
   }, []);
@@ -73,7 +72,7 @@ export default function Group({ onPick }) {
             {shared.map((t) => (
               <li key={t.id}>
                 {playing === `t:${t.id}` ? (
-                  <PreviewPlayer id={t.id} className="span-2" />
+                  <PreviewPlayer id={t.id} className="span-2" onEnded={() => setPlaying(null)} />
                 ) : (
                   <>
                     {t.thumb ? <img src={t.thumb} alt="" /> : <span className="ph" />}
@@ -84,7 +83,7 @@ export default function Group({ onPick }) {
                   </>
                 )}
                 <span className="votes" title={t.by.join(', ')}>×{t.count}</span>
-                <PlayButton active={playing === `t:${t.id}`} onClick={() => toggle(`t:${t.id}`)} />
+                {playing !== `t:${t.id}` && <PlayButton onClick={() => setPlaying(`t:${t.id}`)} />}
               </li>
             ))}
           </ol>
@@ -100,14 +99,14 @@ export default function Group({ onPick }) {
                 <li key={t.id}>
                   <span className="n">{String(i + 1).padStart(2, '0')}</span>
                   {playing === `${k}:${t.id}` ? (
-                    <PreviewPlayer id={t.id} className="row-2" />
+                    <PreviewPlayer id={t.id} className="row-2" onEnded={() => setPlaying(null)} />
                   ) : (
                     <>
                       <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a>
                       <small>{t.artist}</small>
                     </>
                   )}
-                  <PlayButton active={playing === `${k}:${t.id}`} onClick={() => toggle(`${k}:${t.id}`)} />
+                  {playing !== `${k}:${t.id}` && <PlayButton onClick={() => setPlaying(`${k}:${t.id}`)} />}
                 </li>
               ))}
             </ol>

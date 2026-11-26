@@ -398,14 +398,14 @@ function StoryScreen({ story, assets, kind, group, nav }) {
             <li key={i}>
               <span className="n">{String(i + 1).padStart(2, '0')}</span>
               {playing === t.id ? (
-                <PreviewPlayer id={t.id} />
+                <PreviewPlayer id={t.id} onEnded={() => setPlaying(null)} />
               ) : (
                 <span className="t">
                   {t.id ? <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noreferrer">{t.title}</a> : t.title}
                   <small>{t.artist}</small>
                 </span>
               )}
-              {t.id && <PlayButton active={playing === t.id} onClick={() => setPlaying((p) => (p === t.id ? null : t.id))} />}
+              {t.id && playing !== t.id && <PlayButton onClick={() => setPlaying(t.id)} />}
             </li>
           ))}
         </ol>

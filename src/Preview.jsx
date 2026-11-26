@@ -36,8 +36,10 @@ function plainIframe(id) {
   return f;
 }
 
-export function PreviewPlayer({ id, className = '' }) {
+export function PreviewPlayer({ id, className = '', onEnded }) {
   const host = useRef(null);
+  const endedRef = useRef(onEnded);
+  endedRef.current = onEnded;
 
   useEffect(() => {
     const el = host.current;
@@ -55,6 +57,16 @@ export function PreviewPlayer({ id, className = '' }) {
           if (cancelled) return c.destroy();
           c.addListener('ready', () => {
             try { c.play(); } catch { /* blocked: user taps the embed's play */ }
+          });
+          // Collapse back to the normal row when the song (or 30s preview) finishes.
+          let played = false;
+          c.addListener('playback_update', (e) => {
+            const { isPaused, position, duration } = e.data || {};
+            if (!isPaused && position > 0) played = true;
+            if (played && isPaused && (position === 0 || (duration && duration - position < 800))) {
+              played = false;
+              endedRef.current?.();
+            }
           });
         });
       })

@@ -36,7 +36,6 @@ export default function Picker({ initial, onDone, notice }) {
   const [err, setErr] = useState('');
   const dragFrom = useRef(null);
   const [playing, setPlaying] = useState(null); // 'r:<id>' or 'p:<id>', one player at a time
-  const toggle = (key) => setPlaying((cur) => (cur === key ? null : key));
 
   useEffect(() => saveDraft({ name, tracks: picks, mode, stats }), [name, picks, mode, stats]);
 
@@ -124,7 +123,7 @@ export default function Picker({ initial, onDone, notice }) {
             return (
               <li key={t.id} className="result">
                 {playing === `r:${t.id}` ? (
-                  <PreviewPlayer id={t.id} />
+                  <PreviewPlayer id={t.id} onEnded={() => setPlaying(null)} />
                 ) : (
                   <button className="result-main" onClick={() => add(t)} disabled={taken || picks.length >= MAX}>
                     {t.thumb ? <img src={t.thumb} alt="" /> : <span className="ph" />}
@@ -134,7 +133,7 @@ export default function Picker({ initial, onDone, notice }) {
                     </span>
                   </button>
                 )}
-                <PlayButton active={playing === `r:${t.id}`} onClick={() => toggle(`r:${t.id}`)} />
+                {playing !== `r:${t.id}` && <PlayButton onClick={() => setPlaying(`r:${t.id}`)} />}
                 <button className="r-add" onClick={() => add(t)} disabled={taken || picks.length >= MAX} aria-label={taken ? 'Added' : 'Add'}>
                   {taken ? '✓' : '+'}
                 </button>
@@ -168,7 +167,7 @@ export default function Picker({ initial, onDone, notice }) {
               >
                 <span className="n">{String(i + 1).padStart(2, '0')}</span>
                 {playing === `p:${t.id}` ? (
-                  <PreviewPlayer id={t.id} className="span-2" />
+                  <PreviewPlayer id={t.id} className="span-2" onEnded={() => setPlaying(null)} />
                 ) : (
                   <>
                     {t.thumb || t.imageUrl ? <img src={t.thumb || t.imageUrl} alt="" /> : <span className="ph" />}
@@ -179,7 +178,7 @@ export default function Picker({ initial, onDone, notice }) {
                   </>
                 )}
                 <span className="pick-ctrl">
-                  {t.id && <PlayButton active={playing === `p:${t.id}`} onClick={() => toggle(`p:${t.id}`)} />}
+                  {t.id && playing !== `p:${t.id}` && <PlayButton onClick={() => setPlaying(`p:${t.id}`)} />}
                   <button onClick={() => move(i, i - 1)} disabled={i === 0} aria-label="Move up">↑</button>
                   <button onClick={() => move(i, i + 1)} disabled={i === picks.length - 1} aria-label="Move down">↓</button>
                   <button onClick={() => remove(i)} aria-label="Remove">×</button>
