@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getGroup, playlistUrl, saveGroupPlaylist } from './api.js';
-import { YEAR } from './rank.js';
+import { YEAR, songKey } from './rank.js';
 import * as spotify from './spotify.js';
 
 /**
@@ -66,7 +66,7 @@ export default function Admin() {
       setG(fresh);
       const wanted = [];
       const seen = new Set();
-      for (const s of fresh.submissions) for (const t of s.tracks) if (!seen.has(t.id)) { seen.add(t.id); wanted.push(t.id); }
+      for (const s of fresh.submissions) for (const t of s.tracks) { const k = songKey(t.title, t.artist); if (!seen.has(k)) { seen.add(k); wanted.push(t.id); } }
       say(`${fresh.submissions.length} lists → ${wanted.length} unique songs.`);
       const have = await spotify.playlistTrackIds(fresh.playlistId);
       const missing = wanted.filter((id) => !have.has(id));

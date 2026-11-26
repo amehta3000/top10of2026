@@ -4,7 +4,7 @@
 // because every search draws from the same developer-account quota.
 
 import { appToken, json, YEAR } from './_lib.js';
-import { toCardTrack } from '../src/rank.js';
+import { toCardTrack, songKey } from '../src/rank.js';
 
 const cache = new Map();
 const TTL = 60 * 60 * 1000;
@@ -39,7 +39,9 @@ export async function GET(request) {
   const data = await res.json();
   const tracks = (data.tracks?.items || [])
     .filter((t) => t && String(t.album?.release_date || '').startsWith(YEAR))
-    .map(toCardTrack);
+    .map(toCardTrack)
+    // keep the first (most relevant) copy of each song
+    .filter((t, i, all) => all.findIndex((o) => songKey(o.title, o.artist) === songKey(t.title, t.artist)) === i);
 
   cache.set(key, { tracks, exp: Date.now() + TTL });
   if (cache.size > 2000) cache.delete(cache.keys().next().value);

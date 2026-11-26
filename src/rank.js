@@ -8,7 +8,7 @@
 export const YEAR = 2026;
 const WEIGHTS = { long_term: 3, medium_term: 2, short_term: 1 };
 
-const normalize = (s) =>
+export const normalize = (s) =>
   s
     .toLowerCase()
     .replace(/\s*[([](feat|ft|with)\.?[^)\]]*[)\]]/g, '')
@@ -48,6 +48,9 @@ export function rankYear(byRange, year = YEAR, limit = 10) {
     stats: { scanned: seen.size, matched: matchedIds.size },
   };
 }
+
+/** Same song released as a single and on an album has different IDs; this key matches them. */
+export const songKey = (title, artist) => `${normalize(title || '')}|${String(artist || '').toLowerCase().split(',')[0].trim()}`;
 
 export function toCardTrack(t) {
   const imgs = [...(t.album?.images || [])].sort((a, b) => (b.width || 0) - (a.width || 0));

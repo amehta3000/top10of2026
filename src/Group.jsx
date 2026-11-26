@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getGroup, playlistUrl } from './api.js';
-import { YEAR } from './rank.js';
+import { YEAR, songKey } from './rank.js';
 
 // Earlier editions, linked from the group page.
 const PREVIOUS = { name: '#Top10of2021', url: 'https://open.spotify.com/playlist/1uTx4wNLG6ZEeU6V4AafZb' };
@@ -10,11 +10,12 @@ export function tally(submissions) {
   const m = new Map();
   for (const s of submissions) {
     s.tracks.forEach((t, i) => {
-      const e = m.get(t.id) || { ...t, count: 0, points: 0, by: [] };
+      const key = songKey(t.title, t.artist); // count single + album versions as one song
+      const e = m.get(key) || { ...t, count: 0, points: 0, by: [] };
       e.count++;
       e.points += 10 - i;
       e.by.push(s.name);
-      m.set(t.id, e);
+      m.set(key, e);
     });
   }
   return [...m.values()].sort((a, b) => b.count - a.count || b.points - a.points);
