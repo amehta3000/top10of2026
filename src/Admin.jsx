@@ -34,6 +34,7 @@ export default function Admin() {
   useEffect(() => localStorage.setItem('top10.adminKey', adminKey), [adminKey]);
 
   const run = async (fn) => {
+    setLog([]); // each action starts with a fresh log
     setBusy(true);
     try {
       await fn();
